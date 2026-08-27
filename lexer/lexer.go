@@ -110,6 +110,12 @@ func (l *Lexer) match(expected byte) bool {
     return true
 }
 
+func (l *Lexer) skipComment() {
+    for l.peek() != '\n' && !l.isAtEnd() {
+        l.advance()
+    }
+}
+
 // lê um token e o classifica
 func (l *Lexer) scanToken() (token.Token, error) {
 	l.skipWhitespace()
@@ -150,7 +156,12 @@ func (l *Lexer) scanToken() (token.Token, error) {
         return l.makeToken(token.MULTIPLY)
 
 	case '/':
-        return l.makeToken(token.DIVIDE)
+		if l.match('/') {
+			l.skipComment()
+			return l.scanToken()
+		}
+
+		return l.makeToken(token.DIVIDE)
 	
 	case '{':
         return l.makeToken(token.LEFT_BRACE)
@@ -236,7 +247,9 @@ func (l *Lexer) ScanTokens() ([]token.Token, error) {
             return nil, err
         }
 
-        tokens = append(tokens, tok)
+        if tok.Type != token.EOF {
+            tokens = append(tokens, tok)
+        }
     }
 
     tokens = append(tokens, token.Token{

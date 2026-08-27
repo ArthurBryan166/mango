@@ -7,13 +7,8 @@ import (
 
 func main() {
     source := `
-	mng idade <- 18
-
-	if idade >= 18 {
-		mangout("maior")
-	}
-
-	idade <- 20
+	mng idade <- 18 // idade
+	idade = 20
 	`
 
     l := lexer.New(source)
