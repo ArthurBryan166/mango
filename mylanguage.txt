@@ -1,7 +1,8 @@
 Nome da linguagem: Mango
 Extensao de arquivos: .mg
-Declaracao de variaveis: nome tipo
-Declarar com inicializacao: nome tipo <- 10
+
+Declaracao de variaveis: mng nome tipo
+Declarar com inicializacao: mng nome tipo <- 10
 Imprimir no terminal: mangout()
 Tipos: int, char, string, float
 
