@@ -1,0 +1,25 @@
+Nome da linguagem: Mango
+Extensao de arquivos: .mg
+Declaracao de variaveis: nome tipo
+Declarar com inicializacao: nome tipo <- 10
+Imprimir no terminal: mangout()
+Tipos: int, char, string, float
+
+Estruturas:
+Comparacaoes: = ; < ; > ; <= ; >=
+
+if condicao{
+    codigo
+} else{
+    codigo
+}
+
+for condicao{
+    codigo
+}
+
+func nome(parametro1 tipo) tipoRetorno{
+    codigo
+
+    return...
+}
