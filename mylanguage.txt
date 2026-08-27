@@ -19,7 +19,7 @@ for condicao{
     codigo
 }
 
-func nome(parametro1 tipo) tipoRetorno{
+mango nome(parametro1 tipo) tipoRetorno{
     codigo
 
     return...
