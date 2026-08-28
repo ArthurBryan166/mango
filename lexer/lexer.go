@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"github.com/ArthurBryan166/mango.git/token"
+	"github.com/ArthurBryan166/mango/token"
 	"fmt"
 )
 

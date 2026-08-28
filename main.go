@@ -2,7 +2,7 @@ package main
 
 import (
     "fmt"
-    "github.com/ArthurBryan166/mango.git/lexer"
+    "github.com/ArthurBryan166/mango/lexer"
 )
 
 func main() {
