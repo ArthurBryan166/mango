@@ -97,6 +97,7 @@ func isAlphaNumeric(char byte) bool {
     return isAlpha(char) || isDigit(char) || char == '_'
 }
 
+// verifica se o próximo caractere é o desejado
 func (l *Lexer) match(expected byte) bool {
     if l.isAtEnd() {
         return false
@@ -110,6 +111,7 @@ func (l *Lexer) match(expected byte) bool {
     return true
 }
 
+// ignora os comentários
 func (l *Lexer) skipComment() {
     for l.peek() != '\n' && !l.isAtEnd() {
         l.advance()
@@ -209,6 +211,7 @@ func (l *Lexer) scanNumber() (token.Token, error) {
     return l.makeToken(token.NUMBER)
 }
 
+// lê um token e o classifica como identifier ou palavra-chave
 func (l *Lexer) scanIdentifier() (token.Token, error) {
     for isAlphaNumeric(l.peek()) {
         l.advance()
@@ -223,6 +226,7 @@ func (l *Lexer) scanIdentifier() (token.Token, error) {
     return l.makeToken(token.IDENTIFIER)
 }
 
+// lê um token e o classifica como um tipo string
 func (l *Lexer) scanString() (token.Token, error) {
     for l.peek() != '"' && !l.isAtEnd() {
         l.advance()
@@ -237,6 +241,7 @@ func (l *Lexer) scanString() (token.Token, error) {
     return l.makeToken(token.STRING)
 }
 
+// retorna uma lista de tokens
 func (l *Lexer) ScanTokens() ([]token.Token, error) {
     var tokens []token.Token
 
