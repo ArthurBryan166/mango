@@ -55,6 +55,15 @@ func (l *Lexer) peek() byte {
     return l.source[l.current]
 }
 
+// lê um caractere a frente, mas não avança
+func (l *Lexer) peekNext() byte {
+    if l.current+1 >= len(l.source) {
+        return '\x00'
+    }
+
+    return l.source[l.current+1]
+}
+
 // pula espaços, tabs e \n
 func (l *Lexer) skipWhitespace() {
     for {
@@ -199,13 +208,25 @@ func (l *Lexer) scanToken() (token.Token, error) {
 		return l.makeToken(token.GREATER)
 	}
 
-    return token.Token{}, nil
+    return token.Token{}, fmt.Errorf("caractere inesperado '%c' na linha %d", char, l.line)
 }
 
 // lê um número e o classifica
 func (l *Lexer) scanNumber() (token.Token, error) {
     for isDigit(l.peek()) {
         l.advance()
+    }
+
+    if l.peek() == '.' {
+        if !isDigit(l.peekNext()) {
+            return token.Token{}, fmt.Errorf("número decimal inválido na linha %d", l.line)
+        }
+
+        l.advance()
+
+        for isDigit(l.peek()) {
+            l.advance()
+        }
     }
 
     return l.makeToken(token.NUMBER)

@@ -7,9 +7,8 @@ import (
 
 func main() {
     source := `
-	mng idade <- 18 // idade
-	idade = 20
-	`
+    mng x <- 10.
+    `
 
     l := lexer.New(source)
 
