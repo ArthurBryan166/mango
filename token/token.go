@@ -1,11 +1,15 @@
 package token
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type TokenType int
 
 const(
 	MNG TokenType = iota
+    MANGOUT
+    MANGOIN
 	IDENTIFIER
 	NUMBER
 	STRING
@@ -50,6 +54,10 @@ func (t TokenType) String() string {
     switch t {
     case MNG:
         return "MNG"
+    case MANGOUT:
+        return "MANGOUT"
+    case MANGOIN:
+        return "MANGOIN"
     case IDENTIFIER:
         return "IDENTIFIER"
     case NUMBER:

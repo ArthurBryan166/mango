@@ -14,6 +14,8 @@ type Lexer struct{
 
 var keywords = map[string]token.TokenType{
     "mng":		token.MNG,
+    "mangout":  token.MANGOUT,
+    "mangoin":  token.MANGOIN,
     "if":		token.IF,
     "else":		token.ELSE,
     "for":		token.FOR,
