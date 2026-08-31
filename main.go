@@ -10,13 +10,7 @@ import (
 
 func main() {
 	source := `
-    if idade >= 18 {
-		mng resultado <- 1
-	} else if idade >= 13 {
-		mng resultado <- 2
-	} else {
-		mng resultado <- 3
-	}
+    mangout("Olá ", nome, ", tudo bem?")
     `
 
 	l := lexer.New(source)

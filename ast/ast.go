@@ -16,6 +16,14 @@ func (n NumberLiteral) String() string {
     return n.Value
 }
 
+type StringLiteral struct {
+    Value string
+}
+
+func (s StringLiteral) String() string {
+    return s.Value
+}
+
 type VariableExpression struct {
     Name string
 }
@@ -78,6 +86,26 @@ func (i IfStatement) String() string {
 
         result += "}"
     }
+
+    return result
+}
+
+type PrintStatement struct {
+    Expressions []Node
+}
+
+func (p PrintStatement) String() string {
+    result := "mangout("
+
+    for i, expression := range p.Expressions {
+        if i > 0 {
+            result += ", "
+        }
+
+        result += expression.String()
+    }
+
+    result += ")"
 
     return result
 }

@@ -64,6 +64,14 @@ func (p *Parser) primary() (ast.Node, error) {
         }, nil
     }
 
+    if p.check(token.STRING) {
+        tok := p.advance()
+
+        return ast.StringLiteral{
+            Value: tok.Lexeme,
+        }, nil
+    }
+
     if p.check(token.IDENTIFIER) {
         tok := p.advance()
 
@@ -165,6 +173,10 @@ func (p *Parser) declaration() (ast.Node, error) {
 
     if p.check(token.IF) {
         return p.ifStatement()
+    }
+
+    if p.check(token.MANGOUT) {
+        return p.printStatement()
     }
 
     return nil, fmt.Errorf(
@@ -383,5 +395,53 @@ func (p *Parser) ifStatement() (ast.Node, error) {
         Condition: condition,
         Body:      body,
         ElseBody:  elseBody,
+    }, nil
+}
+
+func (p *Parser) printStatement() (ast.Node, error) {
+    p.advance()
+
+    _, err := p.consume(
+        token.LEFT_PAREN,
+        "esperado '(' depois de 'mangout'",
+    )
+
+    if err != nil {
+        return nil, err
+    }
+
+    expressions := []ast.Node{}
+
+    expression, err := p.expression()
+
+    if err != nil {
+        return nil, err
+    }
+
+    expressions = append(expressions, expression)
+
+    for p.check(token.COMMA) {
+        p.advance()
+
+        expression, err := p.expression()
+
+        if err != nil {
+            return nil, err
+        }
+
+        expressions = append(expressions, expression)
+    }
+
+    _, err = p.consume(
+        token.RIGHT_PAREN,
+        "esperado ')' depois das expressões",
+    )
+
+    if err != nil {
+        return nil, err
+    }
+
+    return ast.PrintStatement{
+        Expressions: expressions,
     }, nil
 }

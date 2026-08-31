@@ -187,6 +187,9 @@ func (l *Lexer) scanToken() (token.Token, error) {
 
 	case ')':
         return l.makeToken(token.RIGHT_PAREN)
+    
+    case ',':
+        return l.makeToken(token.COMMA)
 	
 	case '=':
     	return l.makeToken(token.EQUAL)

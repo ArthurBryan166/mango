@@ -31,6 +31,7 @@ const(
     RIGHT_PAREN
     LEFT_BRACE
     RIGHT_BRACE
+    COMMA
 
     IF
     ELSE
@@ -94,6 +95,8 @@ func (t TokenType) String() string {
         return "LEFT_BRACE"
     case RIGHT_BRACE:
         return "RIGHT_BRACE"
+    case COMMA:
+        return "COMMA"
     case IF:
         return "IF"
     case ELSE:
