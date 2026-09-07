@@ -26,12 +26,16 @@ const(
     GREATER_EQUAL
     LESS
     LESS_EQUAL
+    AND
+    OR
+    NOT
 
     LEFT_PAREN
     RIGHT_PAREN
     LEFT_BRACE
     RIGHT_BRACE
     COMMA
+    SEMICOLON
 
     IF
     ELSE
@@ -43,6 +47,11 @@ const(
     FALSE
     NIL
     EOF
+
+    NUMBER_TYPE
+    STRING_TYPE
+    BOOL_TYPE
+    VOID_TYPE
 )
 
 type Token struct{
@@ -87,6 +96,12 @@ func (t TokenType) String() string {
         return "LESS"
     case LESS_EQUAL:
         return "LESS_EQUAL"
+    case AND:
+        return "AND"
+    case OR:
+        return "OR"
+    case NOT:
+        return "NOT"
     case LEFT_PAREN:
         return "LEFT_PAREN"
     case RIGHT_PAREN:
@@ -97,6 +112,8 @@ func (t TokenType) String() string {
         return "RIGHT_BRACE"
     case COMMA:
         return "COMMA"
+    case SEMICOLON:
+        return "SEMICOLON"
     case IF:
         return "IF"
     case ELSE:
@@ -115,6 +132,14 @@ func (t TokenType) String() string {
         return "NIL"
     case EOF:
         return "EOF"
+    case NUMBER_TYPE:
+        return "NUMBER_TYPE"
+    case STRING_TYPE:
+        return "STRING_TYPE"
+    case BOOL_TYPE:
+        return "BOOL_TYPE"
+    case VOID_TYPE:
+        return "VOID_TYPE"
     default:
         return "UNKNOWN"
     }

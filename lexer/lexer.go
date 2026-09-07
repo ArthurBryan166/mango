@@ -16,6 +16,9 @@ var keywords = map[string]token.TokenType{
     "mng":		token.MNG,
     "mangout":  token.MANGOUT,
     "mangoin":  token.MANGOIN,
+    "and": token.AND,
+    "or":  token.OR,
+    "not": token.NOT,
     "if":		token.IF,
     "else":		token.ELSE,
     "for":		token.FOR,
@@ -24,6 +27,10 @@ var keywords = map[string]token.TokenType{
     "true":		token.TRUE,
     "false":	token.FALSE,
     "nil":    	token.NIL,
+    "number": token.NUMBER_TYPE,
+    "string": token.STRING_TYPE,
+    "bool":   token.BOOL_TYPE,
+    "void": token.VOID_TYPE,
 }
 
 // gera um novo lexer
@@ -190,6 +197,9 @@ func (l *Lexer) scanToken() (token.Token, error) {
     
     case ',':
         return l.makeToken(token.COMMA)
+
+    case ';':
+        return l.makeToken(token.SEMICOLON)
 	
 	case '=':
     	return l.makeToken(token.EQUAL)
@@ -211,7 +221,8 @@ func (l *Lexer) scanToken() (token.Token, error) {
 		}
 
 		return l.makeToken(token.GREATER)
-	}
+
+    }
 
     return token.Token{}, fmt.Errorf("caractere inesperado '%c' na linha %d", char, l.line)
 }
