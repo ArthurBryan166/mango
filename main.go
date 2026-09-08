@@ -11,13 +11,12 @@ import (
 
 func main() {
 	source := `
-	mango teste() void {
-		mangout(x)
+	mango main() void {
+		imprimir(67)
 	}
 
-	mango main() void {
-		mng x <- 10
-		teste()
+	mango imprimir(num number) void{
+		mangout(num)
 	}
 	`
 

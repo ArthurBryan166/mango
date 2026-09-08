@@ -25,10 +25,17 @@ func New() *Interpreter {
     }
 }
 
-func (i *Interpreter) Run(nodes []ast.Node) error {
-    for _, node := range nodes {
-        _, err := i.evaluate(node)
+func (i *Interpreter) Run(program []ast.Node) error {
+    for _, node := range program {
+        function, ok := node.(ast.FunctionDeclaration)
 
+        if !ok {
+            return fmt.Errorf(
+                "código executável não pode existir fora de uma função",
+            )
+        }
+
+        _, err := i.evaluate(function)
         if err != nil {
             return err
         }
@@ -47,19 +54,14 @@ func (i *Interpreter) Run(nodes []ast.Node) error {
     mainFunction := mainValue.Value.(Function)
 
     if mainFunction.Declaration.ReturnType != "void" {
-        return fmt.Errorf("função 'main' deve ter retorno void")
+        return fmt.Errorf("função 'main' deve retornar void")
     }
 
     if len(mainFunction.Declaration.Parameters) != 0 {
         return fmt.Errorf("função 'main' não pode receber parâmetros")
     }
 
-    _, err := i.evaluate(ast.CallExpression{
-        Callee: ast.VariableExpression{
-            Name: "main",
-        },
-        Arguments: []ast.Node{},
-    })
+    _, err := i.callFunction(mainFunction, nil)
 
     return err
 }
