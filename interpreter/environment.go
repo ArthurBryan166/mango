@@ -20,8 +20,16 @@ func NewEnclosedEnvironment(enclosing *Environment) *Environment {
 	}
 }
 
-func (e *Environment) Define(name string, value Value) {
+func (e *Environment) Define(name string, value Value) error {
+    if _, exists := e.values[name]; exists {
+        return fmt.Errorf(
+            "variável '%s' já foi declarada neste escopo",
+            name,
+        )
+    }
+
     e.values[name] = value
+    return nil
 }
 
 func (e *Environment) Get(name string) (Value, bool) {

@@ -108,7 +108,11 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 			return Value{}, err
 		}
 
-		i.environment.Define(n.Name, value)
+		err = i.environment.Define(n.Name, value)
+
+		if err != nil {
+			return Value{}, err
+		}
 
 		return value, nil
 
@@ -597,7 +601,7 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 		}
 
 	case ast.FunctionDeclaration:
-		i.environment.Define(
+		err := i.environment.Define(
 			n.Name,
 			Value{
 				Type: FUNCTION_VALUE,
@@ -607,6 +611,10 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 				},
 			},
 		)
+
+		if err != nil {
+			return Value{}, err
+		}
 
 		return Value{}, nil
 
@@ -661,8 +669,8 @@ func (i *Interpreter) Evaluate(node ast.Node) (Value, error) {
 	return i.evaluate(node)
 }
 
-func (i *Interpreter) Define(name string, value Value) {
-    i.environment.Define(name, value)
+func (i *Interpreter) Define(name string, value Value) error {
+    return i.environment.Define(name, value)
 }
 
 func (i *Interpreter) readInput() (string, error) {
@@ -727,10 +735,14 @@ func (i *Interpreter) callFunction(
 	functionEnvironment := NewEnclosedEnvironment(function.Closure)
 
 	for j, parameter := range function.Declaration.Parameters {
-		functionEnvironment.Define(
+		err := functionEnvironment.Define(
 			parameter.Name,
 			arguments[j],
 		)
+
+		if err != nil {
+			return Value{}, err
+		}
 	}
 
 	previousFunctionContext := i.insideFunction
