@@ -595,22 +595,18 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 		}
 
 	case ast.FunctionDeclaration:
-		function := Function{
-			Declaration: n,
-		}
-
 		i.environment.Define(
 			n.Name,
 			Value{
-				Type:  FUNCTION_VALUE,
-				Value: function,
+				Type: FUNCTION_VALUE,
+				Value: Function{
+					Declaration: n,
+					Closure:     i.environment,
+				},
 			},
 		)
 
-		return Value{
-			Type: NIL_VALUE,
-			Value: nil,
-		}, nil
+		return Value{}, nil
 
 	case ast.CallExpression:
 		callee, err := i.evaluate(n.Callee)
@@ -628,15 +624,6 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 
 		function := callee.Value.(Function)
 
-		if len(n.Arguments) != len(function.Declaration.Parameters) {
-			return Value{}, fmt.Errorf(
-				"função %s esperava %d argumentos, recebeu %d",
-				function.Declaration.Name,
-				len(function.Declaration.Parameters),
-				len(n.Arguments),
-			)
-		}
-
 		arguments := make([]Value, len(n.Arguments))
 
 		for j, argument := range n.Arguments {
@@ -646,79 +633,10 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 				return Value{}, err
 			}
 
-			expectedType := function.Declaration.Parameters[j].Type
-
-			if !matchesType(value, expectedType) {
-				return Value{}, fmt.Errorf(
-					"argumento %d da função '%s' deveria ser %s, mas recebeu %s",
-					j+1,
-					function.Declaration.Name,
-					expectedType,
-					value.Type,
-				)
-			}
-
 			arguments[j] = value
 		}
 
-		functionEnvironment := NewEnclosedEnvironment(i.environment)
-
-		for j, parameter := range function.Declaration.Parameters {
-			functionEnvironment.Define(
-				parameter.Name,
-				arguments[j],
-			)
-		}
-
-		previousFunctionContext := i.insideFunction
-		i.insideFunction = true
-
-		err = i.executeBlock(
-			function.Declaration.Body,
-			functionEnvironment,
-		)
-
-		i.insideFunction = previousFunctionContext
-
-		if err != nil {
-			if returnValue, ok := err.(ReturnValue); ok {
-				if function.Declaration.ReturnType == "void" {
-					return Value{}, fmt.Errorf(
-						"função '%s' é void e não pode usar 'return'",
-						function.Declaration.Name,
-					)
-				}
-
-				if !matchesType(
-					returnValue.Value,
-					function.Declaration.ReturnType,
-				) {
-					return Value{}, fmt.Errorf(
-						"função '%s' deveria retornar %s, mas retornou %s",
-						function.Declaration.Name,
-						function.Declaration.ReturnType,
-						returnValue.Value.Type,
-					)
-				}
-
-				return returnValue.Value, nil
-			}
-
-			return Value{}, err
-		}
-
-		if function.Declaration.ReturnType != "void" {
-			return Value{}, fmt.Errorf(
-				"função '%s' deveria retornar %s, mas não retornou nenhum valor",
-				function.Declaration.Name,
-				function.Declaration.ReturnType,
-			)
-		}
-
-		return Value{
-			Type:  NIL_VALUE,
-			Value: nil,
-		}, nil
+		return i.callFunction(function, arguments)
 
 	case ast.ExpressionStatement:
 		_, err := i.evaluate(n.Expression)
@@ -774,6 +692,95 @@ func (i *Interpreter) executeBlock(
 	i.environment = previous
 
 	return nil
+}
+
+func (i *Interpreter) callFunction(
+	function Function,
+	arguments []Value,
+) (Value, error) {
+
+	if len(arguments) != len(function.Declaration.Parameters) {
+		return Value{}, fmt.Errorf(
+			"função %s esperava %d argumentos, recebeu %d",
+			function.Declaration.Name,
+			len(function.Declaration.Parameters),
+			len(arguments),
+		)
+	}
+
+	for j, argument := range arguments {
+		expectedType := function.Declaration.Parameters[j].Type
+
+		if !matchesType(argument, expectedType) {
+			return Value{}, fmt.Errorf(
+				"argumento %d da função '%s' deveria ser %s, mas recebeu %s",
+				j+1,
+				function.Declaration.Name,
+				expectedType,
+				argument.Type,
+			)
+		}
+	}
+
+	functionEnvironment := NewEnclosedEnvironment(function.Closure)
+
+	for j, parameter := range function.Declaration.Parameters {
+		functionEnvironment.Define(
+			parameter.Name,
+			arguments[j],
+		)
+	}
+
+	previousFunctionContext := i.insideFunction
+	i.insideFunction = true
+
+	err := i.executeBlock(
+		function.Declaration.Body,
+		functionEnvironment,
+	)
+
+	i.insideFunction = previousFunctionContext
+
+	if err != nil {
+		if returnValue, ok := err.(ReturnValue); ok {
+
+			if function.Declaration.ReturnType == "void" {
+				return Value{}, fmt.Errorf(
+					"função '%s' é void e não pode usar 'return'",
+					function.Declaration.Name,
+				)
+			}
+
+			if !matchesType(
+				returnValue.Value,
+				function.Declaration.ReturnType,
+			) {
+				return Value{}, fmt.Errorf(
+					"função '%s' deveria retornar %s, mas retornou %s",
+					function.Declaration.Name,
+					function.Declaration.ReturnType,
+					returnValue.Value.Type,
+				)
+			}
+
+			return returnValue.Value, nil
+		}
+
+		return Value{}, err
+	}
+
+	if function.Declaration.ReturnType != "void" {
+		return Value{}, fmt.Errorf(
+			"função '%s' deveria retornar %s, mas não retornou nenhum valor",
+			function.Declaration.Name,
+			function.Declaration.ReturnType,
+		)
+	}
+
+	return Value{
+		Type:  NIL_VALUE,
+		Value: nil,
+	}, nil
 }
 
 func matchesType(value Value, expected string) bool {

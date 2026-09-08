@@ -35,5 +35,6 @@ func (t ValueType) String() string {
 }
 
 type Function struct {
-	Declaration ast.FunctionDeclaration
+    Declaration ast.FunctionDeclaration
+    Closure     *Environment
 }

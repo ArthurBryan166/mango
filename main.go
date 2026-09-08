@@ -11,10 +11,15 @@ import (
 
 func main() {
 	source := `
-	mango main() void {
-		mangout(not 10)
+	mango teste() void {
+		mangout(x)
 	}
-`
+
+	mango main() void {
+		mng x <- 10
+		teste()
+	}
+	`
 
 	l := lexer.New(source)
 
