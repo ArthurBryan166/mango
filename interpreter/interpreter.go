@@ -443,10 +443,10 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 				return Value{}, err
 			}
 
-			fmt.Print(value.Value)
+			fmt.Fprint(i.writer, value.Value)
 		}
 
-		fmt.Println()
+		fmt.Fprintln(i.writer)
 
 		return Value{
 			Type:  NIL_VALUE,
