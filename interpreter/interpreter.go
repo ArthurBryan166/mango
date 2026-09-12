@@ -12,15 +12,17 @@ import (
 )
 
 type Interpreter struct {
-    environment    *Environment
-    reader         *bufio.Reader
-    insideFunction bool
+    environment     *Environment
+    reader          *bufio.Reader
+	writer 		    *bufio.Writer
+    insideFunction 	bool
 }
 
 func New() *Interpreter {
     return &Interpreter{
         environment:    NewEnvironment(),
         reader:         bufio.NewReader(os.Stdin),
+        writer:         bufio.NewWriter(os.Stdout),
         insideFunction: false,
     }
 }
@@ -532,7 +534,9 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 
 	case ast.ForStatement:
 		previous := i.environment
-		i.environment = NewEnclosedEnvironment(previous)
+
+		loopEnvironment := NewEnclosedEnvironment(previous)
+		i.environment = loopEnvironment
 
 		defer func() {
 			i.environment = previous
@@ -563,9 +567,11 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 				}
 			}
 
+			bodyEnvironment := NewEnclosedEnvironment(loopEnvironment)
+
 			if err := i.executeBlock(
 				n.Body,
-				i.environment,
+				bodyEnvironment,
 			); err != nil {
 				return Value{}, err
 			}
@@ -578,10 +584,7 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 			}
 		}
 
-		return Value{
-			Type:  NIL_VALUE,
-			Value: nil,
-		}, nil
+		return Value{Type: NIL_VALUE, Value: nil}, nil
 		
 	case ast.ReturnStatement:
 		if !i.insideFunction {
@@ -684,24 +687,25 @@ func (i *Interpreter) readInput() (string, error) {
 }
 
 func (i *Interpreter) executeBlock(
-	statements []ast.Node,
-	environment *Environment,
+    statements []ast.Node,
+    environment *Environment,
 ) error {
-	previous := i.environment
-	i.environment = environment
+    previous := i.environment
+    i.environment = environment
 
-	for _, statement := range statements {
-		_, err := i.evaluate(statement)
+    defer func() {
+        i.environment = previous
+    }()
 
-		if err != nil {
-			i.environment = previous
-			return err
-		}
-	}
+    for _, statement := range statements {
+        _, err := i.evaluate(statement)
 
-	i.environment = previous
+        if err != nil {
+            return err
+        }
+    }
 
-	return nil
+    return nil
 }
 
 func (i *Interpreter) callFunction(

@@ -11,13 +11,13 @@ import (
 
 func main() {
 	source := `
-	mango main() void {
-		imprimir(67)
-	}
+	mango dobro(x number) number {
+    return x * 2
+}
 
-	mango imprimir(num number) void{
-		mangout(num)
-	}
+mango main() void {
+    mangout(dobro(21))
+}
 	`
 
 	l := lexer.New(source)
