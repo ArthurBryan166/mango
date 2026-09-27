@@ -272,3 +272,14 @@ O Mango começou como um projeto para aprender mais sobre como linguagens de pro
 A ideia foi construir a linguagem aos poucos, entendo como funciona cada etapa de funcionamento da linguagem, desde o código fonte até no resultado no terminal.
 
 Este projeto também serve como uma forma de praticar Go, envolvendo organização de código, estruturas de dados, tratamento de erros e interpretação de programas.
+
+## Instalação
+
+Os executáveis do Mango estão disponíveis na página de releases.
+
+Baixe a versão correspondente ao seu sistema operacional e arquitetura e coloque o executável no `PATH`.
+
+Depois, execute um programa com:
+
+```bash
+mango run programa.mg
