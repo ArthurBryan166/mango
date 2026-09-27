@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"io"
+	"math"
 
 	"github.com/ArthurBryan166/mango/ast"
 	"github.com/ArthurBryan166/mango/token"
@@ -28,44 +30,49 @@ func New() *Interpreter {
 }
 
 func (i *Interpreter) Run(program []ast.Node) error {
-    for _, node := range program {
-        function, ok := node.(ast.FunctionDeclaration)
+	for _, node := range program {
+		function, ok := node.(ast.FunctionDeclaration)
 
-        if !ok {
-            return fmt.Errorf(
-                "código executável não pode existir fora de uma função",
-            )
-        }
+		if !ok {
+			return fmt.Errorf(
+				"código executável não pode existir fora de uma função",
+			)
+		}
 
-        _, err := i.evaluate(function)
-        if err != nil {
-            return err
-        }
-    }
+		_, err := i.evaluate(function)
 
-    mainValue, exists := i.environment.Get("main")
+		if err != nil {
+			return err
+		}
+	}
 
-    if !exists {
-        return fmt.Errorf("função 'main' não foi declarada")
-    }
+	mainValue, exists := i.environment.Get("main")
 
-    if mainValue.Type != FUNCTION_VALUE {
-        return fmt.Errorf("'main' não é uma função")
-    }
+	if !exists {
+		return fmt.Errorf("função 'main' não foi declarada")
+	}
 
-    mainFunction := mainValue.Value.(Function)
+	if mainValue.Type != FUNCTION_VALUE {
+		return fmt.Errorf("'main' não é uma função")
+	}
 
-    if mainFunction.Declaration.ReturnType != "void" {
-        return fmt.Errorf("função 'main' deve retornar void")
-    }
+	mainFunction := mainValue.Value.(Function)
 
-    if len(mainFunction.Declaration.Parameters) != 0 {
-        return fmt.Errorf("função 'main' não pode receber parâmetros")
-    }
+	if mainFunction.Declaration.ReturnType != "void" {
+		return fmt.Errorf("função 'main' deve retornar void")
+	}
 
-    _, err := i.callFunction(mainFunction, nil)
+	if len(mainFunction.Declaration.Parameters) != 0 {
+		return fmt.Errorf("função 'main' não pode receber parâmetros")
+	}
 
-    return err
+	_, err := i.callFunction(mainFunction, nil)
+
+	if err != nil {
+		return err
+	}
+
+	return i.writer.Flush()
 }
 
 func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
@@ -92,6 +99,12 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 		return Value{
 			Type:  BOOLEAN_VALUE,
 			Value: n.Value,
+		}, nil
+
+	case ast.NilLiteral:
+		return Value{
+			Type:  NIL_VALUE,
+			Value: nil,
 		}, nil
 
 	case ast.VariableExpression:
@@ -228,7 +241,7 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 					"operador '+' requer dois números ou duas strings",
 				)
 
-			case token.MINUS, token.MULTIPLY, token.DIVIDE:
+			case token.MINUS, token.MULTIPLY, token.DIVIDE, token.MODULO:
 				if left.Type != NUMBER_VALUE || right.Type != NUMBER_VALUE {
 					return Value{}, fmt.Errorf(
 						"operador '%s' requer dois números",
@@ -260,6 +273,18 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 					return Value{
 						Type:  NUMBER_VALUE,
 						Value: leftValue / rightValue,
+					}, nil
+
+				case token.MODULO:
+					if rightValue == 0 {
+						return Value{}, fmt.Errorf(
+							"módulo por zero",
+						)
+					}
+
+					return Value{
+						Type: NUMBER_VALUE,
+						Value: math.Mod(leftValue, rightValue),
 					}, nil
 				}
 
@@ -333,6 +358,40 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 					return Value{
 						Type:  BOOLEAN_VALUE,
 						Value: true,
+					}, nil
+				}
+
+			case token.NOT_EQUAL:
+				if left.Type != right.Type {
+					return Value{
+						Type:  BOOLEAN_VALUE,
+						Value: true,
+					}, nil
+				}
+
+				switch left.Type {
+				case NUMBER_VALUE:
+					return Value{
+						Type: BOOLEAN_VALUE,
+						Value: left.Value.(float64) != right.Value.(float64),
+					}, nil
+
+				case STRING_VALUE:
+					return Value{
+						Type: BOOLEAN_VALUE,
+						Value: left.Value.(string) != right.Value.(string),
+					}, nil
+
+				case BOOLEAN_VALUE:
+					return Value{
+						Type: BOOLEAN_VALUE,
+						Value: left.Value.(bool) != right.Value.(bool),
+					}, nil
+
+				case NIL_VALUE:
+					return Value{
+						Type: BOOLEAN_VALUE,
+						Value: false,
 					}, nil
 				}
 
@@ -593,6 +652,15 @@ func (i *Interpreter) evaluate(node ast.Node) (Value, error) {
 			)
 		}
 
+		if n.Value == nil {
+			return Value{}, ReturnValue{
+				Value: Value{
+					Type: NIL_VALUE,
+					Value: nil,
+				},
+			}
+		}
+
 		value, err := i.evaluate(n.Value)
 
 		if err != nil {
@@ -679,11 +747,11 @@ func (i *Interpreter) Define(name string, value Value) error {
 func (i *Interpreter) readInput() (string, error) {
 	input, err := i.reader.ReadString('\n')
 
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return "", err
 	}
 
-	return strings.TrimRight(input, "\r\n"), nil
+	return strings.TrimSpace(input), nil
 }
 
 func (i *Interpreter) executeBlock(
@@ -763,9 +831,24 @@ func (i *Interpreter) callFunction(
 		if returnValue, ok := err.(ReturnValue); ok {
 
 			if function.Declaration.ReturnType == "void" {
+				if returnValue.Value.Type == NIL_VALUE {
+					return Value{
+						Type:  NIL_VALUE,
+						Value: nil,
+					}, nil
+				}
+
 				return Value{}, fmt.Errorf(
-					"função '%s' é void e não pode usar 'return'",
+					"função '%s' é void e não pode retornar um valor",
 					function.Declaration.Name,
+				)
+			}
+
+			if returnValue.Value.Type == NIL_VALUE {
+				return Value{}, fmt.Errorf(
+					"função '%s' deveria retornar %s, mas usou 'return' sem valor",
+					function.Declaration.Name,
+					function.Declaration.ReturnType,
 				)
 			}
 

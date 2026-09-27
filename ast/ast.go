@@ -36,6 +36,12 @@ func (b BooleanLiteral) String() string {
     return "false"
 }
 
+type NilLiteral struct{}
+
+func (n NilLiteral) String() string {
+    return "nil"
+}
+
 type VariableExpression struct {
     Name string
 }

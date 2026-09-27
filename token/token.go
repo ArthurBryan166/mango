@@ -18,6 +18,7 @@ const(
 	MULTIPLY
 	MINUS
     DIVIDE
+    MODULO
 
 	ASSIGN // <-
     EQUAL
@@ -82,6 +83,8 @@ func (t TokenType) String() string {
         return "MULTIPLY"
     case DIVIDE:
         return "DIVIDE"
+    case MODULO:
+        return "MODULO"
     case ASSIGN:
         return "ASSIGN"
     case EQUAL:

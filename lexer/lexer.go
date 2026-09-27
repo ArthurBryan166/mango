@@ -183,6 +183,9 @@ func (l *Lexer) scanToken() (token.Token, error) {
 
 		return l.makeToken(token.DIVIDE)
 	
+    case '%':
+        return l.makeToken(token.MODULO)
+
 	case '{':
         return l.makeToken(token.LEFT_BRACE)
 
@@ -201,6 +204,16 @@ func (l *Lexer) scanToken() (token.Token, error) {
     case ';':
         return l.makeToken(token.SEMICOLON)
 	
+    case '!':
+        if l.match('=') {
+            return l.makeToken(token.NOT_EQUAL)
+        }
+
+        return token.Token{}, fmt.Errorf(
+            "caractere inesperado '!' na linha %d",
+            l.line,
+        )
+
 	case '=':
     	return l.makeToken(token.EQUAL)
 

@@ -64,70 +64,76 @@ func (p *Parser) consume(t token.TokenType, message string) (token.Token, error)
 }
 
 func (p *Parser) primary() (ast.Node, error) {
-    if p.check(token.NUMBER) {
-        tok := p.advance()
+	if p.check(token.NUMBER) {
+		tok := p.advance()
 
-        return ast.NumberLiteral{
-            Value: tok.Lexeme,
-        }, nil
-    }
+		return ast.NumberLiteral{
+			Value: tok.Lexeme,
+		}, nil
+	}
 
-    if p.check(token.STRING) {
-        tok := p.advance()
+	if p.check(token.STRING) {
+		tok := p.advance()
 
-        return ast.StringLiteral{
-            Value: tok.Lexeme[1 : len(tok.Lexeme)-1],
-        }, nil
-    }
+		return ast.StringLiteral{
+			Value: tok.Lexeme[1 : len(tok.Lexeme)-1],
+		}, nil
+	}
 
-    if p.check(token.TRUE) {
-        p.advance()
+	if p.check(token.TRUE) {
+		p.advance()
 
-        return ast.BooleanLiteral{
-            Value: true,
-        }, nil
-    }
+		return ast.BooleanLiteral{
+			Value: true,
+		}, nil
+	}
 
-    if p.check(token.FALSE) {
-        p.advance()
+	if p.check(token.FALSE) {
+		p.advance()
 
-        return ast.BooleanLiteral{
-            Value: false,
-        }, nil
-    }
+		return ast.BooleanLiteral{
+			Value: false,
+		}, nil
+	}
 
-    if p.check(token.IDENTIFIER) {
-        tok := p.advance()
+	if p.check(token.NIL) {
+		p.advance()
 
-        return ast.VariableExpression{
-            Name: tok.Lexeme,
-        }, nil
-    }
+		return ast.NilLiteral{}, nil
+	}
 
-    if p.check(token.LEFT_PAREN) {
-        p.advance()
+	if p.check(token.IDENTIFIER) {
+		tok := p.advance()
 
-        expr, err := p.expression()
-        if err != nil {
-            return nil, err
-        }
+		return ast.VariableExpression{
+			Name: tok.Lexeme,
+		}, nil
+	}
 
-        _, err = p.consume(
-            token.RIGHT_PAREN,
-            "esperado ')' depois da expressão",
-        )
+	if p.check(token.LEFT_PAREN) {
+		p.advance()
 
-        if err != nil {
-            return nil, err
-        }
+		expr, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
 
-        return expr, nil
-    }
+		_, err = p.consume(
+			token.RIGHT_PAREN,
+			"esperado ')' depois da expressão",
+		)
 
-    return nil, fmt.Errorf(
-        "expressão esperada na linha %d",
-        p.peek().Line,
-    )
+		if err != nil {
+			return nil, err
+		}
+
+		return expr, nil
+	}
+
+	return nil, fmt.Errorf(
+		"expressão esperada na linha %d",
+		p.peek().Line,
+	)
 }
 
 func (p *Parser) expression() (ast.Node, error) {
@@ -191,74 +197,74 @@ func (p *Parser) Parse() ([]ast.Node, error) {
 }
 
 func (p *Parser) declaration() (ast.Node, error) {
-    if p.check(token.MNG) {
-        return p.variableDeclaration()
-    }
+	if p.check(token.MNG) {
+		return p.variableDeclaration()
+	}
 
-    if p.check(token.IF) {
-        return p.ifStatement()
-    }
+	if p.check(token.IF) {
+		return p.ifStatement()
+	}
 
-    if p.check(token.MANGOUT) {
-        return p.printStatement()
-    }
+	if p.check(token.MANGOUT) {
+		return p.printStatement()
+	}
 
-    if p.check(token.MANGOIN) {
-        return p.inputStatement()
-    }
+	if p.check(token.MANGOIN) {
+		return p.inputStatement()
+	}
 
-    if p.check(token.IDENTIFIER) && p.peekNext().Type == token.ASSIGN {
-        return p.assignmentStatement()
-    }
+	if p.check(token.IDENTIFIER) && p.peekNext().Type == token.ASSIGN {
+		return p.assignmentStatement()
+	}
 
-    if p.check(token.IDENTIFIER) {
-        expression, err := p.expression()
+	if p.check(token.IDENTIFIER) {
+		expression, err := p.expression()
 
-        if err != nil {
-            return nil, err
-        }
+		if err != nil {
+			return nil, err
+		}
 
-        return ast.ExpressionStatement{
-            Expression: expression,
-        }, nil
-    }
+		return ast.ExpressionStatement{
+			Expression: expression,
+		}, nil
+	}
 
-    if p.check(token.FOR) {
-        return p.forStatement()
-    }
+	if p.check(token.FOR) {
+		return p.forStatement()
+	}
 
-    if p.check(token.MANGO) {
-        return p.functionDeclaration()
-    }
+	if p.check(token.MANGO) {
+		return p.functionDeclaration()
+	}
 
-    if p.check(token.RETURN) {
-        return p.returnStatement()
-    }
+	if p.check(token.RETURN) {
+		return p.returnStatement()
+	}
 
-    return nil, fmt.Errorf(
-        "comando inesperado '%s' na linha %d",
-        p.peek().Lexeme,
-        p.peek().Line,
-    )
+	return nil, fmt.Errorf(
+		"comando inesperado '%s' na linha %d",
+		p.peek().Lexeme,
+		p.peek().Line,
+	)
 }
 
 func (p *Parser) unary() (ast.Node, error) {
-    if p.check(token.MINUS) || p.check(token.PLUS) || p.check(token.NOT) {
-        operator := p.advance()
+	if p.check(token.MINUS) || p.check(token.PLUS) || p.check(token.NOT) {
+		operator := p.advance()
 
-        right, err := p.unary()
+		right, err := p.unary()
 
-        if err != nil {
-            return nil, err
-        }
+		if err != nil {
+			return nil, err
+		}
 
-        return ast.UnaryExpression{
-            Operator: operator,
-            Right:    right,
-        }, nil
-    }
+		return ast.UnaryExpression{
+			Operator: operator,
+			Right:    right,
+		}, nil
+	}
 
-    return p.callExpression()
+	return p.callExpression()
 }
 
 func (p *Parser) factor() (ast.Node, error) {
@@ -268,7 +274,7 @@ func (p *Parser) factor() (ast.Node, error) {
 		return nil, err
 	}
 
-	for p.check(token.MULTIPLY) || p.check(token.DIVIDE) {
+	for p.check(token.MULTIPLY) || p.check(token.DIVIDE) || p.check(token.MODULO) {
 		operator := p.advance()
 
 		right, err := p.unary()
@@ -314,51 +320,51 @@ func (p *Parser) term() (ast.Node, error) {
 }
 
 func (p *Parser) and() (ast.Node, error) {
-    left, err := p.equality()
-    if err != nil {
-        return nil, err
-    }
+	left, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
 
-    for p.check(token.AND) {
-        operator := p.advance()
+	for p.check(token.AND) {
+		operator := p.advance()
 
-        right, err := p.equality()
-        if err != nil {
-            return nil, err
-        }
+		right, err := p.equality()
+		if err != nil {
+			return nil, err
+		}
 
-        left = ast.BinaryExpression{
-            Left:     left,
-            Operator: operator,
-            Right:    right,
-        }
-    }
+		left = ast.BinaryExpression{
+			Left:     left,
+			Operator: operator,
+			Right:    right,
+		}
+	}
 
-    return left, nil
+	return left, nil
 }
 
 func (p *Parser) or() (ast.Node, error) {
-    left, err := p.and()
-    if err != nil {
-        return nil, err
-    }
+	left, err := p.and()
+	if err != nil {
+		return nil, err
+	}
 
-    for p.check(token.OR) {
-        operator := p.advance()
+	for p.check(token.OR) {
+		operator := p.advance()
 
-        right, err := p.and()
-        if err != nil {
-            return nil, err
-        }
+		right, err := p.and()
+		if err != nil {
+			return nil, err
+		}
 
-        left = ast.BinaryExpression{
-            Left:     left,
-            Operator: operator,
-            Right:    right,
-        }
-    }
+		left = ast.BinaryExpression{
+			Left:     left,
+			Operator: operator,
+			Right:    right,
+		}
+	}
 
-    return left, nil
+	return left, nil
 }
 
 func (p *Parser) equality() (ast.Node, error) {
@@ -368,7 +374,7 @@ func (p *Parser) equality() (ast.Node, error) {
 		return nil, err
 	}
 
-	for p.check(token.EQUAL) {
+	for p.check(token.EQUAL) || p.check(token.NOT_EQUAL) {
 		operator := p.advance()
 
 		right, err := p.comparison()
@@ -418,88 +424,88 @@ func (p *Parser) comparison() (ast.Node, error) {
 }
 
 func (p *Parser) ifStatement() (ast.Node, error) {
-    p.advance() // consome 'if'
+	p.advance() // consome 'if'
 
-    condition, err := p.expression()
-    if err != nil {
-        return nil, err
-    }
+	condition, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
 
-    _, err = p.consume(token.LEFT_BRACE, "esperado '{' depois da condição")
+	_, err = p.consume(token.LEFT_BRACE, "esperado '{' depois da condição")
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    var body []ast.Node
+	var body []ast.Node
 
-    for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
-        statement, err := p.declaration()
+	for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
+		statement, err := p.declaration()
 
-        if err != nil {
-            return nil, err
-        }
+		if err != nil {
+			return nil, err
+		}
 
-        body = append(body, statement)
-    }
+		body = append(body, statement)
+	}
 
-    _, err = p.consume(token.RIGHT_BRACE, "esperado '}' depois do bloco")
+	_, err = p.consume(token.RIGHT_BRACE, "esperado '}' depois do bloco")
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    var elseBody []ast.Node
+	var elseBody []ast.Node
 
-    if p.check(token.ELSE) {
-        p.advance()
+	if p.check(token.ELSE) {
+		p.advance()
 
-        // else if
-        if p.check(token.IF) {
-            nestedIf, err := p.ifStatement()
+		// else if
+		if p.check(token.IF) {
+			nestedIf, err := p.ifStatement()
 
-            if err != nil {
-                return nil, err
-            }
+			if err != nil {
+				return nil, err
+			}
 
-            elseBody = append(elseBody, nestedIf)
-        } else {
-            // else normal
-            _, err = p.consume(
-                token.LEFT_BRACE,
-                "esperado '{' depois de 'else'",
-            )
+			elseBody = append(elseBody, nestedIf)
+		} else {
+			// else normal
+			_, err = p.consume(
+				token.LEFT_BRACE,
+				"esperado '{' depois de 'else'",
+			)
 
-            if err != nil {
-                return nil, err
-            }
+			if err != nil {
+				return nil, err
+			}
 
-            for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
-                statement, err := p.declaration()
+			for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
+				statement, err := p.declaration()
 
-                if err != nil {
-                    return nil, err
-                }
+				if err != nil {
+					return nil, err
+				}
 
-                elseBody = append(elseBody, statement)
-            }
+				elseBody = append(elseBody, statement)
+			}
 
-            _, err = p.consume(
-                token.RIGHT_BRACE,
-                "esperado '}' depois do bloco 'else'",
-            )
+			_, err = p.consume(
+				token.RIGHT_BRACE,
+				"esperado '}' depois do bloco 'else'",
+			)
 
-            if err != nil {
-                return nil, err
-            }
-        }
-    }
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
 
-    return ast.IfStatement{
-        Condition: condition,
-        Body:      body,
-        ElseBody:  elseBody,
-    }, nil
+	return ast.IfStatement{
+		Condition: condition,
+		Body:      body,
+		ElseBody:  elseBody,
+	}, nil
 }
 
 func (p *Parser) forStatement() (ast.Node, error) {
@@ -604,110 +610,110 @@ func (p *Parser) forStatement() (ast.Node, error) {
 }
 
 func (p *Parser) parseBlock() ([]ast.Node, error) {
-    var body []ast.Node
+	var body []ast.Node
 
-    for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
-        statement, err := p.declaration()
+	for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
+		statement, err := p.declaration()
 
-        if err != nil {
-            return nil, err
-        }
+		if err != nil {
+			return nil, err
+		}
 
-        body = append(body, statement)
-    }
+		body = append(body, statement)
+	}
 
-    _, err := p.consume(
-        token.RIGHT_BRACE,
-        "esperado '}' depois do bloco",
-    )
+	_, err := p.consume(
+		token.RIGHT_BRACE,
+		"esperado '}' depois do bloco",
+	)
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    return body, nil
+	return body, nil
 }
 
 func (p *Parser) printStatement() (ast.Node, error) {
-    p.advance()
+	p.advance()
 
-    _, err := p.consume(
-        token.LEFT_PAREN,
-        "esperado '(' depois de 'mangout'",
-    )
+	_, err := p.consume(
+		token.LEFT_PAREN,
+		"esperado '(' depois de 'mangout'",
+	)
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    expressions := []ast.Node{}
+	expressions := []ast.Node{}
 
-    expression, err := p.expression()
+	expression, err := p.expression()
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    expressions = append(expressions, expression)
+	expressions = append(expressions, expression)
 
-    for p.check(token.COMMA) {
-        p.advance()
+	for p.check(token.COMMA) {
+		p.advance()
 
-        expression, err := p.expression()
+		expression, err := p.expression()
 
-        if err != nil {
-            return nil, err
-        }
+		if err != nil {
+			return nil, err
+		}
 
-        expressions = append(expressions, expression)
-    }
+		expressions = append(expressions, expression)
+	}
 
-    _, err = p.consume(
-        token.RIGHT_PAREN,
-        "esperado ')' depois das expressões",
-    )
+	_, err = p.consume(
+		token.RIGHT_PAREN,
+		"esperado ')' depois das expressões",
+	)
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    return ast.PrintStatement{
-        Expressions: expressions,
-    }, nil
+	return ast.PrintStatement{
+		Expressions: expressions,
+	}, nil
 }
 
 func (p *Parser) inputStatement() (ast.Node, error) {
-    p.advance()
+	p.advance()
 
-    _, err := p.consume(
-        token.LEFT_PAREN,
-        "esperado '(' depois de 'mangoin'",
-    )
-    if err != nil {
-        return nil, err
-    }
+	_, err := p.consume(
+		token.LEFT_PAREN,
+		"esperado '(' depois de 'mangoin'",
+	)
+	if err != nil {
+		return nil, err
+	}
 
-    name, err := p.consume(
-        token.IDENTIFIER,
-        "esperado uma variável dentro de 'mangoin'",
-    )
-    if err != nil {
-        return nil, err
-    }
+	name, err := p.consume(
+		token.IDENTIFIER,
+		"esperado uma variável dentro de 'mangoin'",
+	)
+	if err != nil {
+		return nil, err
+	}
 
-    _, err = p.consume(
-        token.RIGHT_PAREN,
-        "esperado ')' depois da variável",
-    )
-    if err != nil {
-        return nil, err
-    }
+	_, err = p.consume(
+		token.RIGHT_PAREN,
+		"esperado ')' depois da variável",
+	)
+	if err != nil {
+		return nil, err
+	}
 
-    return ast.InputStatement{
-        Variable: ast.VariableExpression{
-            Name: name.Lexeme,
-        },
-    }, nil
+	return ast.InputStatement{
+		Variable: ast.VariableExpression{
+			Name: name.Lexeme,
+		},
+	}, nil
 }
 
 func (p *Parser) assignmentStatement() (ast.Node, error) {
@@ -866,9 +872,36 @@ func (p *Parser) functionDeclaration() (ast.Node, error) {
 	}, nil
 }
 
+func (p *Parser) canStartExpression() bool {
+	switch p.peek().Type {
+	case token.NUMBER,
+		token.STRING,
+		token.TRUE,
+		token.FALSE,
+		token.NIL,
+		token.IDENTIFIER,
+		token.LEFT_PAREN,
+		token.PLUS,
+		token.MINUS,
+		token.NOT:
+		return true
+
+	default:
+		return false
+	}
+}
+
 func (p *Parser) returnStatement() (ast.Node, error) {
 	p.advance()
 
+	// return sem valor
+	if !p.canStartExpression() {
+		return ast.ReturnStatement{
+			Value: nil,
+		}, nil
+	}
+
+	// return com valor
 	value, err := p.expression()
 	if err != nil {
 		return nil, err
