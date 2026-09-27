@@ -1,0 +1,13 @@
+# Executável compilado
+mango
+
+# Configurações do VS Code
+.vscode/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Anotações pessoais
+
+anotacoes.txt
